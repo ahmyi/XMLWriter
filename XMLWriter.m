@@ -27,8 +27,9 @@
 }
 -(void)dealloc
 {
-    [nodes release];
-    [oldroot release];
+    [nodes release], nodes = nil ;
+    [oldroot release], oldroot = nil;
+    [treeNodes release], treeNodes = nil;
     [super dealloc];
 }
 +(NSString *)XMLStringFromDictionary:(NSDictionary *)dictionary
