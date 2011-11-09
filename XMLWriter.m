@@ -14,7 +14,7 @@
         self.treeLevel = 0;
         self.objectlevel = 0;
         self.node = 0;
-        self.xml = @"";
+        self.xml = @"<?xml version="1.0" ?>";
         self.nodeCounts = 0;
         self.samenodeflag = 0;
         nodes = [[NSMutableArray alloc] init]; 
