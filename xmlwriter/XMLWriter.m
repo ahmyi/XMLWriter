@@ -2,16 +2,17 @@
 //  XMLWriter.m
 //
 #import "XMLWriter.h"
-
+#define PREFIX_STRING_FOR_ELEMENT @"@" //From XMLReader
 @implementation XMLWriter
 - (id)initWithDictionary:(NSDictionary *)dictionary
 {
     self = [super init];
     if (self) {
         // Initialization code here.
-        xml = @"<?xml version=\"1.0\" encoding=\"UTF-8\" ?>";
+        xml = [[NSString alloc]initWithString:@"<?xml version=\"1.0\" encoding=\"UTF-8\" ?>"];
         nodes = [[NSMutableArray alloc] init]; 
         treeNodes = [[NSMutableArray alloc] init]; 
+        isRoot = YES;
         [self serialize:dictionary];
     }
     
@@ -43,7 +44,10 @@
                 else
                 {
                     [self serialize:objects];
-                    xml = [xml stringByAppendingFormat:@"</%@><%@>",[treeNodes lastObject],[treeNodes lastObject]];
+                    if(!isRoot)
+                        xml = [xml stringByAppendingFormat:@"</%@><%@>",[treeNodes lastObject],[treeNodes lastObject]];
+                    else
+                        isRoot = FALSE;
                     int value = [[nodes lastObject] intValue];
                     [nodes removeLastObject];
                     value--;
@@ -55,6 +59,7 @@
         {
             for (NSString* key in root)
             {
+                isRoot = FALSE;
                 [treeNodes addObject:key];
                 xml = [xml stringByAppendingFormat:@"<%@>",key];
                 [self serialize:[root objectForKey:key]];
@@ -62,8 +67,11 @@
                 [treeNodes removeLastObject];
             }
         }
-        else if ([root isKindOfClass:[NSString class]])
+        else if ([root isKindOfClass:[NSString class]] || [root isKindOfClass:[NSNumber class]] || [root isKindOfClass:[NSURL class]])
         {
+//            if ([root hasPrefix:"PREFIX_STRING_FOR_ELEMENT"])
+//            is element
+//            else
             xml = [xml stringByAppendingFormat:@"%@",root];
         }
 }

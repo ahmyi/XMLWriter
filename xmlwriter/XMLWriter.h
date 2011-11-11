@@ -9,6 +9,7 @@
     NSMutableArray* nodes;
     NSString* xml;
     NSMutableArray* treeNodes;
+    Bool isRoot;
 }
 +(NSString *)XMLStringFromDictionary:(NSDictionary *)dictionary;
 +(BOOL)XMLDataFromDictionary:(NSDictionary *)dictionary toStringPath:(NSString *) path  Error:(NSError **)error;
