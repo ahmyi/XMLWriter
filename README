@@ -1,8 +1,8 @@
-Usages
+#Usage
 Import "XMLWriter.h"
 
 NSDictionary to Path
-[XMLWriter XMLDataFromDictionary:dictionary toStringPath:mylocation Error:&err];
+BOOL isOkay = [XMLWriter XMLDataFromDictionary:dictionary toStringPath:mylocation Error:&err];
 
 NSDictionary to XML string 
  NSString* string = [XMLWriter XMLStringFromDictionary:dictionary];
