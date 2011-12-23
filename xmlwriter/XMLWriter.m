@@ -4,27 +4,6 @@
 #import "XMLWriter.h"
 #define PREFIX_STRING_FOR_ELEMENT @"@" //From XMLReader
 @implementation XMLWriter
-- (id)initWithDictionary:(NSDictionary *)dictionary
-{
-    self = [super init];
-    if (self) {
-        // Initialization code here.
-        xml = [[NSString alloc]initWithString:@"<?xml version=\"1.0\" encoding=\"UTF-8\" ?>"];
-        nodes = [[NSMutableArray alloc] init]; 
-        treeNodes = [[NSMutableArray alloc] init]; 
-        isRoot = YES;
-        [self serialize:dictionary];
-    }
-    
-    return self;
-}
--(void)dealloc
-{
-    [xml release],nodes =nil;
-    [nodes release], nodes = nil ;
-    [treeNodes release], treeNodes = nil;
-    [super dealloc];
-}
 
 -(void)serialize:(id)root
 {    
@@ -59,12 +38,18 @@
         {
             for (NSString* key in root)
             {
-                isRoot = FALSE;
-                [treeNodes addObject:key];
-                xml = [xml stringByAppendingFormat:@"<%@>",key];
-                [self serialize:[root objectForKey:key]];
-                xml =[xml stringByAppendingFormat:@"</%@>",key];
-                [treeNodes removeLastObject];
+                if(!isRoot)
+                {
+//                    NSLog(@"We came in");
+                    [treeNodes addObject:key];
+                    xml = [xml stringByAppendingFormat:@"<%@>",key];
+                    [self serialize:[root objectForKey:key]];
+                    xml =[xml stringByAppendingFormat:@"</%@>",key];
+                    [treeNodes removeLastObject];
+                } else {
+                    isRoot = FALSE;
+                    [self serialize:[root objectForKey:key]];
+                }
             }
         }
         else if ([root isKindOfClass:[NSString class]] || [root isKindOfClass:[NSNumber class]] || [root isKindOfClass:[NSURL class]])
@@ -75,12 +60,37 @@
             xml = [xml stringByAppendingFormat:@"%@",root];
         }
 }
--(NSString *)getXML
+
+- (id)initWithDictionary:(NSDictionary *)dictionary
 {
-    return xml;
+    self = [super init];
+    if (self) {
+        // Initialization code here.
+        xml = @"<?xml version=\"1.0\" encoding=\"UTF-8\" ?>";
+        nodes = [[NSMutableArray alloc] init]; 
+        treeNodes = [[NSMutableArray alloc] init]; 
+        isRoot = YES;
+        passDict = [[dictionary allKeys] lastObject];
+        xml = [xml stringByAppendingFormat:@"<%@>\n",passDict];
+        [self serialize:dictionary];
+    }
+    
+    return self;
+}
+-(void)dealloc
+{
+    //    [xml release],nodes =nil;
+    [nodes release], nodes = nil ;
+    [treeNodes release], treeNodes = nil;
+    [super dealloc];
 }
 
-
+-(NSString *)getXML
+{
+    xml = [xml stringByReplacingOccurrencesOfString:@"</(null)><(null)>" withString:@"\n"];
+    xml = [xml stringByAppendingFormat:@"\n</%@>",passDict];
+    return xml;
+}
 
 +(NSString *)XMLStringFromDictionary:(NSDictionary *)dictionary
 {
