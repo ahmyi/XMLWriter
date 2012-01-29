@@ -11,8 +11,10 @@
     NSMutableArray* treeNodes;
     BOOL isRoot;
     NSString* passDict;
+    BOOL withHeader;
 }
 +(NSString *)XMLStringFromDictionary:(NSDictionary *)dictionary;
++(NSString *)XMLStringFromDictionary:(NSDictionary *)dictionary withHeader:(BOOL)header;
 +(BOOL)XMLDataFromDictionary:(NSDictionary *)dictionary toStringPath:(NSString *) path  Error:(NSError **)error;
 
 @end
