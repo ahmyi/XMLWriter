@@ -66,7 +66,9 @@
     self = [super init];
     if (self) {
         // Initialization code here.
-        xml = @"<?xml version=\"1.0\" encoding=\"UTF-8\" ?>";
+        xml = @"";
+        if (withHeader)
+            xml = @"<?xml version=\"1.0\" encoding=\"UTF-8\" ?>";
         nodes = [[NSMutableArray alloc] init]; 
         treeNodes = [[NSMutableArray alloc] init]; 
         isRoot = YES;
@@ -77,6 +79,12 @@
     
     return self;
 }
+- (id)initWithDictionary:(NSDictionary *)dictionary withHeader:(BOOL)header {
+    withHeader = header;
+    self = [self initWithDictionary:dictionary];
+    return self;
+}
+
 -(void)dealloc
 {
     //    [xml release],nodes =nil;
@@ -99,6 +107,14 @@
     XMLWriter* fromDictionary = [[[XMLWriter alloc]initWithDictionary:dictionary]autorelease];
     return [fromDictionary getXML];
 }
+
++ (NSString *) XMLStringFromDictionary:(NSDictionary *)dictionary withHeader:(BOOL)header {
+    if (![[dictionary allKeys] count])
+        return NULL;
+    XMLWriter* fromDictionary = [[[XMLWriter alloc]initWithDictionary:dictionary withHeader:header]autorelease];
+    return [fromDictionary getXML];
+}
+
 +(BOOL)XMLDataFromDictionary:(NSDictionary *)dictionary toStringPath:(NSString *) path  Error:(NSError **)error
 {
     
