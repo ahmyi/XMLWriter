@@ -24,7 +24,17 @@
                 {
                     [self serialize:objects];
                     if(!isRoot)
-                        xml = [xml stringByAppendingFormat:@"</%@><%@>",[treeNodes lastObject],[treeNodes lastObject]];
+                    {
+                        //xml = [xml stringByAppendingFormat:@"</%@><%@>",[treeNodes lastObject],[treeNodes lastObject]];
+                        NSString *itemLast = [NSString stringWithFormat:@"</%@><%@>",
+                                              [treeNodes lastObject],
+                                              [treeNodes lastObject]];
+                        itemLast = [itemLast
+                                    stringByReplacingOccurrencesOfString:@"</(null)><(null)>"
+                                    withString:@"\n"]; //RealZYC
+                        [xml appendData:
+                         [itemLast dataUsingEncoding:NSUTF8StringEncoding]];
+                    }
                     else
                         isRoot = FALSE;
                     int value = [[nodes lastObject] intValue];
@@ -42,9 +52,15 @@
                 {
 //                    NSLog(@"We came in");
                     [treeNodes addObject:key];
-                    xml = [xml stringByAppendingFormat:@"<%@>",key];
+                    //xml = [xml stringByAppendingFormat:@"<%@>",key];
+                    [xml appendData:
+                     [[NSString stringWithFormat:@"<%@>",key]
+                      dataUsingEncoding:NSUTF8StringEncoding]];
                     [self serialize:[root objectForKey:key]];
-                    xml =[xml stringByAppendingFormat:@"</%@>",key];
+                    //xml =[xml stringByAppendingFormat:@"</%@>",key];
+                    [xml appendData:
+                     [[NSString stringWithFormat:@"</%@>",key]
+                      dataUsingEncoding:NSUTF8StringEncoding]];
                     [treeNodes removeLastObject];
                 } else {
                     isRoot = FALSE;
@@ -57,7 +73,10 @@
 //            if ([root hasPrefix:"PREFIX_STRING_FOR_ELEMENT"])
 //            is element
 //            else
-            xml = [xml stringByAppendingFormat:@"%@",root];
+            //xml = [xml stringByAppendingFormat:@"%@",root];
+            [xml appendData:
+             [[NSString stringWithFormat:@"%@",root]
+              dataUsingEncoding:NSUTF8StringEncoding]];
         }
 }
 
@@ -66,14 +85,21 @@
     self = [super init];
     if (self) {
         // Initialization code here.
-        xml = @"";
+        //xml = @"";
+        xml = [[NSMutableData alloc] init];
         if (withHeader)
-            xml = @"<?xml version=\"1.0\" encoding=\"UTF-8\" ?>";
+            //xml = @"<?xml version=\"1.0\" encoding=\"UTF-8\" ?>";
+            [xml appendData:
+             [@"<?xml version=\"1.0\" encoding=\"UTF-8\" ?>"
+              dataUsingEncoding:NSUTF8StringEncoding]];
         nodes = [[NSMutableArray alloc] init]; 
         treeNodes = [[NSMutableArray alloc] init]; 
         isRoot = YES;
         passDict = [[dictionary allKeys] lastObject];
-        xml = [xml stringByAppendingFormat:@"<%@>\n",passDict];
+        //xml = [xml stringByAppendingFormat:@"<%@>\n",passDict];
+        [xml appendData:
+         [[NSString stringWithFormat:@"<%@>\n",passDict]
+          dataUsingEncoding:NSUTF8StringEncoding]];
         [self serialize:dictionary];
     }
     
@@ -88,38 +114,55 @@
 -(void)dealloc
 {
     //    [xml release],nodes =nil;
-    [nodes release], nodes = nil ;
-    [treeNodes release], treeNodes = nil;
-    [super dealloc];
+    /*[nodes release],*/ nodes = nil ;
+    /*[treeNodes release],*/ treeNodes = nil;
+    //[super dealloc];
 }
 
--(NSString *)getXML
+-(NSData *)getXML
 {
-    xml = [xml stringByReplacingOccurrencesOfString:@"</(null)><(null)>" withString:@"\n"];
-    xml = [xml stringByAppendingFormat:@"\n</%@>",passDict];
+    //xml = [xml stringByReplacingOccurrencesOfString:@"</(null)><(null)>" withString:@"\n"]; //Can not do it with NSData
+    //xml = [xml stringByAppendingFormat:@"\n</%@>",passDict];
+    [xml appendData:
+     [[NSString stringWithFormat:@"\n</%@>",passDict]
+      dataUsingEncoding:NSUTF8StringEncoding]];
     return xml;
+}
+
++(NSData *)XMLDataFromDictionary:(NSDictionary *)dictionary
+{
+    if (![[dictionary allKeys] count])
+        return NULL;
+    XMLWriter* fromDictionary = [[XMLWriter alloc]initWithDictionary:dictionary];
+    return [fromDictionary getXML];
+}
+
++ (NSData *) XMLDataFromDictionary:(NSDictionary *)dictionary withHeader:(BOOL)header {
+    if (![[dictionary allKeys] count])
+        return NULL;
+    XMLWriter* fromDictionary = [[XMLWriter alloc]initWithDictionary:dictionary withHeader:header];
+    return [fromDictionary getXML];
 }
 
 +(NSString *)XMLStringFromDictionary:(NSDictionary *)dictionary
 {
-    if (![[dictionary allKeys] count])
-        return NULL;
-    XMLWriter* fromDictionary = [[[XMLWriter alloc]initWithDictionary:dictionary]autorelease];
-    return [fromDictionary getXML];
+    return [[NSString alloc]
+            initWithData:[XMLWriter XMLDataFromDictionary:dictionary]
+            encoding:NSUTF8StringEncoding];
 }
 
-+ (NSString *) XMLStringFromDictionary:(NSDictionary *)dictionary withHeader:(BOOL)header {
-    if (![[dictionary allKeys] count])
-        return NULL;
-    XMLWriter* fromDictionary = [[[XMLWriter alloc]initWithDictionary:dictionary withHeader:header]autorelease];
-    return [fromDictionary getXML];
++(NSString *)XMLStringFromDictionary:(NSDictionary *)dictionary withHeader:(BOOL)header
+{
+    return [[NSString alloc]
+            initWithData:[XMLWriter XMLDataFromDictionary:dictionary withHeader:header]
+            encoding:NSUTF8StringEncoding];
 }
 
 +(BOOL)XMLDataFromDictionary:(NSDictionary *)dictionary toStringPath:(NSString *) path  Error:(NSError **)error
 {
     
-    XMLWriter* fromDictionary = [[[XMLWriter alloc]initWithDictionary:dictionary]autorelease];
-    [[fromDictionary getXML] writeToFile:path atomically:YES encoding:NSUTF8StringEncoding error:error];
+    XMLWriter* fromDictionary = [[XMLWriter alloc]initWithDictionary:dictionary];
+    [[fromDictionary getXML] writeToFile:path atomically:YES];
     if (error)
         return FALSE;
     else
